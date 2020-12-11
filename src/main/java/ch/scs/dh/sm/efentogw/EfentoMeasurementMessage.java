@@ -92,7 +92,7 @@ public class EfentoMeasurementMessage {
         public static class Parameters {
             public Integer channel;
             public String type;
-            public Integer value;
+            public Double value;
 
             public Integer getChannel() {
                 return channel;
@@ -110,11 +110,11 @@ public class EfentoMeasurementMessage {
                 this.type = type;
             }
 
-            public Integer getValue() {
+            public Double getValue() {
                 return value;
             }
 
-            public void setValue(Integer value) {
+            public void setValue(Double value) {
                 this.value = value;
             }
         }

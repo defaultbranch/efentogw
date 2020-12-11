@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit;
 
 @Service
 @ApplicationScope
-public class InfluxOutput {
+public class InfluxOutput implements DataWriter {
 
     private InfluxDB influxDB;
 
@@ -30,16 +30,17 @@ public class InfluxOutput {
         influxDB.close();
     }
 
+    @Override
     public void writeData(
             String measurement,
             Instant timestamp,
             Map<String, String> tags,
-            Map<String, Integer> intFields
+            Map<String, Double> doubleField
     ) {
         Point.Builder builder = Point.measurement(measurement)
                 .time(timestamp.toEpochMilli(), TimeUnit.MILLISECONDS)
                 .tag(tags);
-        intFields.entrySet().forEach(it -> builder.addField(it.getKey(), it.getValue().intValue()));
+        doubleField.entrySet().forEach(it -> builder.addField(it.getKey(), it.getValue().doubleValue()));
         influxDB.write(builder.build());
     }
 }

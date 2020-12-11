@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
@@ -20,13 +21,13 @@ import java.util.Map;
 @RestController()
 public class MeasurementsController {
 
-    public static final DateTimeFormatter EFENTO_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-    public static final ZoneId TIME_ZONE = ZoneId.of("Europe/Zurich");
+    public static final DateTimeFormatter EFENTO_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss 'UTC'");
     public static final String INFLUX_MEASUREMENT = "from_gateway";
-    private InfluxOutput influxOutput;
+    public static final ZoneId UTC_ZONE = ZoneId.of("UTC");
+    private DataWriter influxOutput;
 
     @Autowired
-    public MeasurementsController(InfluxOutput influxOutput) {
+    public MeasurementsController(DataWriter influxOutput) {
         this.influxOutput = influxOutput;
     }
 
@@ -36,7 +37,7 @@ public class MeasurementsController {
 
         for (Measurement measurement : data.measurements) {
 
-            Instant measured_at = LocalDateTime.parse(measurement.measured_at, EFENTO_DATE_FORMATTER).atZone(TIME_ZONE).toInstant();
+            Instant measured_at = LocalDateTime.parse(measurement.measured_at, EFENTO_DATE_FORMATTER).atZone(UTC_ZONE).toInstant();
 
             Map<String, String> measurementTags = new HashMap<>();
             measurementTags.put("serial", measurement.serial);
@@ -47,10 +48,10 @@ public class MeasurementsController {
                 paramTags.putAll(measurementTags);
                 paramTags.put("channel", "" + param.getChannel());
 
-                Map<String, Integer> intFields = new HashMap<>();
-                intFields.put(param.getType(), param.getValue());
+                Map<String, Double> doubleFields = new HashMap<>();
+                doubleFields.put(param.getType(), param.getValue());
 
-                influxOutput.writeData(INFLUX_MEASUREMENT, measured_at, paramTags, intFields);
+                influxOutput.writeData(INFLUX_MEASUREMENT, measured_at, paramTags, doubleFields);
             }
         }
     }
